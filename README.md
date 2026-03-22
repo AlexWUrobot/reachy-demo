@@ -1,20 +1,9 @@
----
-title: Reachy Mini Conversation App
-emoji: 🎤
-colorFrom: red
-colorTo: blue
-sdk: static
-pinned: false
-short_description: Talk with Reachy Mini!
-suggested_storage: large
-tags:
- - reachy_mini
- - reachy_mini_python_app
----
+![ezgif com-animated-gif-maker](https://github.com/user-attachments/assets/8fca0395-06d6-44de-8343-6827b7218ce1)
 
-# Reachy Mini conversation app
 
-Conversational app for the Reachy Mini robot combining OpenAI's realtime APIs, vision pipelines, and choreographed motion libraries.
+# Reachy Mini Cooking Assistant
+
+An AI-driven cooking assistant for the Reachy Mini robot, leveraging on-device Ollama models running on Jetson Orin. The system combines OpenAI ASR, multimodal vision pipelines, automated food ordering via DoorDash, and accessibility-focused design, including deaf-accessible interaction capabilities.
 
 ![Reachy Mini Dance](docs/assets/reachy_mini_dance.gif)
 
