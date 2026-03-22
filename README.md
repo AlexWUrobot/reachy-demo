@@ -65,7 +65,7 @@ reachy-mini-conversation-app
 > [!TIP]
 > Make sure the Reachy Mini daemon is running before launching the app. If you see a `TimeoutError`, it means the daemon isn't started. See [Reachy Mini's SDK](https://github.com/pollen-robotics/reachy_mini/) for setup instructions.
 
-## Contributing
+## Acknowledgement
 
 This repo was forked from the original [reach-mini-conversation-app](https://github.com/pollen-robotics/reachy_mini_conversation_app).
 
