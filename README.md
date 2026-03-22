@@ -3,7 +3,7 @@
 
 # Reachy Mini Cooking Assistant
 
-Conversational app for the Reachy Mini robot combining OpenAI's realtime APIs, vision pipelines, and choreographed motion libraries.
+An AI-driven cooking assistant for the Reachy Mini robot, leveraging on-device Ollama models running on Jetson Orin. The system combines OpenAI ASR, multimodal vision pipelines, automated food ordering via DoorDash, and accessibility-focused design, including deaf-accessible interaction capabilities.
 
 ![Reachy Mini Dance](docs/assets/reachy_mini_dance.gif)
 
