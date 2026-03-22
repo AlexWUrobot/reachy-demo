@@ -1,18 +1,5 @@
 ![ezgif com-animated-gif-maker](https://github.com/user-attachments/assets/8fca0395-06d6-44de-8343-6827b7218ce1)
 
----
-title: Reachy Mini Conversation App
-emoji: 🎤
-colorFrom: red
-colorTo: blue
-sdk: static
-pinned: false
-short_description: Talk with Reachy Mini!
-suggested_storage: large
-tags:
- - reachy_mini
- - reachy_mini_python_app
----
 
 # Reachy Mini Cooking Assistant
 
