@@ -1,4 +1,5 @@
----
+---![ezgif com-animated-gif-maker](https://github.com/user-attachments/assets/8fca0395-06d6-44de-8343-6827b7218ce1)
+
 title: Reachy Mini Conversation App
 emoji: 🎤
 colorFrom: red
@@ -12,7 +13,7 @@ tags:
  - reachy_mini_python_app
 ---
 
-# Reachy Mini conversation app
+# Reachy Mini Cooking Assistant
 
 Conversational app for the Reachy Mini robot combining OpenAI's realtime APIs, vision pipelines, and choreographed motion libraries.
 
