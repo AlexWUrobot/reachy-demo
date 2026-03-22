@@ -376,6 +376,16 @@ class OpenaiRealtimeHandler(AsyncStreamHandler):
             logger.warning("Tool '%s' (id=%s) returned no result and no error", bg_tool.tool_name, bg_tool.id)
             tool_result = {"error": "No result returned from tool execution"}
 
+        if bg_tool.tool_name == "start_cooking_vision" and isinstance(tool_result, dict):
+            if tool_result.get("status") == "success":
+                logger.info(
+                    "start_cooking_vision: summary=%s (samples=%d)",
+                    tool_result.get("summary", ""),
+                    len(tool_result.get("samples") or []),
+                )
+            else:
+                logger.info("start_cooking_vision: %s", tool_result)
+
         # Connection may have closed while tool was running
         if not self.connection:
             logger.warning("Connection closed during tool '%s' (id=%s) execution; cannot send result back", bg_tool.tool_name, bg_tool.id)
@@ -522,11 +532,11 @@ class OpenaiRealtimeHandler(AsyncStreamHandler):
                             self._clear_queue()
                         if self.deps.head_wobbler is not None:
                             self.deps.head_wobbler.reset()
-                        self.deps.movement_manager.set_listening(True)
+                        # self.deps.movement_manager.set_listening(True)
                         logger.debug("User speech started")
 
                     if event.type == "input_audio_buffer.speech_stopped":
-                        self.deps.movement_manager.set_listening(False)
+                        # self.deps.movement_manager.set_listening(False)
                         logger.debug("User speech stopped - server will auto-commit with VAD")
 
                     if event.type == "response.output_audio.done":
@@ -734,7 +744,7 @@ class OpenaiRealtimeHandler(AsyncStreamHandler):
 
         # Handle idle
         idle_duration = asyncio.get_event_loop().time() - self.last_activity_time
-        if idle_duration > 15.0 and self.deps.movement_manager.is_idle():
+        if idle_duration > 15.0:
             try:
                 await self.send_idle_signal(idle_duration)
             except Exception as e:

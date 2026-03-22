@@ -441,7 +441,10 @@ class LocalStream:
         if self._robot.media.backend == MediaBackend.GSTREAMER:
             # Directly flush gstreamer audio pipe
             self._robot.media.audio.clear_player()
-        elif self._robot.media.backend == MediaBackend.DEFAULT or self._robot.media.backend == MediaBackend.DEFAULT_NO_VIDEO:
+        elif (
+            self._robot.media.backend == MediaBackend.DEFAULT
+            or self._robot.media.backend == MediaBackend.DEFAULT_NO_VIDEO
+        ):
             self._robot.media.audio.clear_output_buffer()
         self.handler.output_queue = asyncio.Queue()
 

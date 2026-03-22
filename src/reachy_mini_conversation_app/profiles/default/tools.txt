@@ -6,3 +6,6 @@ camera
 do_nothing
 head_tracking
 move_head
+add_to_grocery_cart
+cooking_vision
+perform_robot_sign

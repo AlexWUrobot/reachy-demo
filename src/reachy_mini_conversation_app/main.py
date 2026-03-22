@@ -9,11 +9,15 @@ import threading
 from typing import Any, Dict, List, Optional
 
 import gradio as gr
+import uvicorn
 from fastapi import FastAPI
 from fastrtc import Stream
 from gradio.utils import get_space
+from fastapi.responses import FileResponse, StreamingResponse
+from fastapi.staticfiles import StaticFiles
 
 from reachy_mini import ReachyMini, ReachyMiniApp
+from reachy_mini_conversation_app.config import config
 from reachy_mini_conversation_app.utils import (
     parse_args,
     setup_logger,
@@ -48,7 +52,12 @@ def run(
     from reachy_mini_conversation_app.openai_realtime import OpenaiRealtimeHandler
     from reachy_mini_conversation_app.tools.core_tools import ToolDependencies
     from reachy_mini_conversation_app.audio.head_wobbler import HeadWobbler
+    from reachy_mini_conversation_app.tools.grocery_tool import GroceryAssistant
+    from reachy_mini_conversation_app.tools.reachy_mini_signs import ReachyChef
 
+
+    grocery_logic = GroceryAssistant(laptop_ip="192.168.31.5")
+    chef_behavior_system = ReachyChef() 
     logger = setup_logger(args.debug)
     logger.info("Starting Reachy Mini Conversation App")
 
@@ -107,6 +116,41 @@ def run(
 
     camera_worker, _, vision_manager = handle_vision_stuff(args, robot)
 
+    # start_cooking_vision tool: needs camera frames + either local vision or HTTP VLM
+    if camera_worker is not None:
+        if vision_manager is not None:
+            logger.info(
+                "Vision tool start_cooking_vision: local model backend (--local-vision).",
+            )
+        elif config.VLM_SERVER_URL:
+            logger.info(
+                "Vision tool start_cooking_vision: HTTP VLM at %s (format=%s)",
+                config.VLM_SERVER_URL,
+                getattr(config, "VLM_REQUEST_FORMAT", "multipart"),
+            )
+        else:
+            logger.warning(
+                "Vision tool start_cooking_vision: no backend yet. Set env VLM_SERVER_URL "
+                "or run with --local-vision (install extras: pip install '.[local_vision]').",
+            )
+
+    # MJPEG Video stream endpoint
+    async def video_feed() -> StreamingResponse:
+        """Video streaming generator for the camera worker."""
+
+        async def generate() -> Any:
+            while True:
+                if camera_worker:
+                    jpeg = camera_worker.get_latest_jpeg()
+                    if jpeg:
+                        yield (b"--frame\r\nContent-Type: image/jpeg\r\n\r\n" + jpeg + b"\r\n")
+                await asyncio.sleep(0.05)
+
+        return StreamingResponse(generate(), media_type="multipart/x-mixed-replace; boundary=frame")
+
+    if settings_app and camera_worker:
+        settings_app.add_api_route("/video_feed", video_feed)
+
     movement_manager = MovementManager(
         current_robot=robot,
         camera_worker=camera_worker,
@@ -116,10 +160,12 @@ def run(
 
     deps = ToolDependencies(
         reachy_mini=robot,
-        movement_manager=movement_manager,
+        movement_manager=None,
         camera_worker=camera_worker,
         vision_manager=vision_manager,
-        head_wobbler=head_wobbler,
+        head_wobbler=None,
+        grocery_assistant=grocery_logic,
+        reachy_chef=chef_behavior_system,
     )
     current_file_path = os.path.dirname(os.path.abspath(__file__))
     logger.debug(f"Current file absolute path: {current_file_path}")
@@ -165,12 +211,25 @@ def run(
         stream_manager = stream.ui
         if not settings_app:
             app = FastAPI()
+            app.mount("/static", StaticFiles(directory=os.path.join(current_file_path, "static")), name="static")
         else:
             app = settings_app
+            try:
+                app.mount("/static", StaticFiles(directory=os.path.join(current_file_path, "static")), name="static")
+            except Exception:
+                pass
+
+        if camera_worker:
+            app.add_api_route("/video_feed", video_feed)
 
         personality_ui.wire_events(handler, stream_manager)
 
-        app = gr.mount_gradio_app(app, stream.ui, path="/")
+        app = gr.mount_gradio_app(app, stream.ui, path="/chat")
+        
+        @app.get("/", include_in_schema=False)
+        def _root() -> FileResponse:
+            index_file = os.path.join(current_file_path, "static", "index.html")
+            return FileResponse(index_file)
     else:
         # In headless mode, wire settings_app + instance_path to console LocalStream
         stream_manager = LocalStream(
@@ -181,8 +240,8 @@ def run(
         )
 
     # Each async service → its own thread/loop
-    movement_manager.start()
-    head_wobbler.start()
+    # movement_manager.start()
+    # head_wobbler.start()
     if camera_worker:
         camera_worker.start()
     if vision_manager:
@@ -203,7 +262,10 @@ def run(
         threading.Thread(target=poll_stop_event, daemon=True).start()
 
     try:
-        stream_manager.launch()
+        if args.gradio:
+            uvicorn.run(app, host="0.0.0.0", port=7860)
+        else:
+            stream_manager.launch()
     except KeyboardInterrupt:
         logger.info("Keyboard interruption in main thread... closing server.")
     finally:

@@ -61,6 +61,8 @@ class ToolDependencies:
 
     reachy_mini: ReachyMini
     movement_manager: Any  # MovementManager from moves.py
+    grocery_assistant: Any = None
+    reachy_chef: Any = None
     # Optional deps
     camera_worker: Any | None = None  # CameraWorker for frame buffering
     vision_manager: Any | None = None
@@ -95,6 +97,90 @@ class Tool(abc.ABC):
     async def __call__(self, deps: ToolDependencies, **kwargs: Any) -> Dict[str, Any]:
         """Async tool execution entrypoint."""
         raise NotImplementedError
+    
+class GroceryCartTool(Tool):
+    """Tool to analyze a dish and add ingredients to the local cart."""
+    
+    name = "add_to_grocery_cart"
+    description = "Use this tool when the user wants to cook a specific dish or meal. It finds the necessary ingredients and adds them to their digital shopping cart."
+    
+    parameters_schema = {
+        "type": "object",
+        "properties": {
+            "dish_name": {
+                "type": "string",
+                "description": "The name of the dish or meal the user mentioned (e.g., 'cheese sandwich', 'pasta').",
+            },
+        },
+        "required": ["dish_name"],
+    }
+
+    async def __call__(self, deps: ToolDependencies, dish_name: str) -> Dict[str, Any]:
+        """Entrypoint for the grocery tool."""
+        try:
+            # We removed the antennas.wiggle() line to stop the AttributeError.
+            # Use your assistant logic here.
+            # NOTE: If your add_ingredients_to_cart is NOT async, remove the 'await'
+            result_message = deps.grocery_assistant.add_ingredients_to_cart(dish_name)
+            
+            return {
+                "status": "success", 
+                "message": result_message
+            }
+        except Exception as e:
+            logger.error(f"Grocery Tool Execution Error: {e}")
+            return {"status": "error", "message": str(e)}
+
+class RobotSignTool(Tool):
+    """
+    Triggers a specific physical animation or cooking sign on the Reachy Mini robot.
+    Use this for any cooking-related actions, ingredient handling, or emotional feedback.
+    """
+    name = "perform_robot_sign"
+    
+    # We put the available signs directly in the description for the LLM's "eyes"
+    description = (
+        "Triggers a physical sign. Available signs: "
+        "start, stop, wait, good_job, warning, error, cut, stir, "
+        "add_ingredient, heat, timer_done, look_here, check_pan, danger. "
+        "Available behaviors: sniff, mirror_stir, timeout_tilt, victory_bow, freeze_and_stare."
+    )
+
+    parameters_schema = {
+        "type": "object",
+        "properties": {
+            "sign_name": {
+                "type": "string",
+                # The 'enum' field is the MOST IMPORTANT part. 
+                # It forces the LLM to pick ONLY from this list.
+                "enum": [
+                    "start", "stop", "wait", "good_job", "warning", "error",
+                    "cut", "stir", "add_ingredient", "heat", "timer_done",
+                    "look_here", "check_pan", "danger", "sniff", 
+                    "mirror_stir", "timeout_tilt", "victory_bow", "freeze_and_stare"
+                ],
+                "description": "The EXACT name of the sign to perform. Do not add numbers or suffixes.",
+            },
+            "is_behavior": {
+                "type": "boolean", 
+                "description": "Set to True if the sign is from the behaviors list."
+            }
+        },
+        "required": ["sign_name"]
+    }
+
+    async def __call__(self, deps: ToolDependencies, sign_name: str, is_behavior: bool = False) -> Dict[str, Any]:
+        # Clean the input: remove numbers and whitespace, convert to lowercase
+        clean_name = "".join([i for i in sign_name if not i.isdigit()]).lower().strip()
+        
+        try:
+            if is_behavior:
+                deps.reachy_chef.behavior(name=clean_name, mini_instance=deps.reachy_mini)
+            else:
+                deps.reachy_chef.sign(name=clean_name, mini_instance=deps.reachy_mini)
+            return {"status": "success", "message": f"Performed {clean_name}"}
+        except Exception as e:
+            return {"status": "error", "message": f"Sign '{clean_name}' failed: {e}"}
 
 
 def _load_module_from_file(module_name: str, file_path: Path) -> None:

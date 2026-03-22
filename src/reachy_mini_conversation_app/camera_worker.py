@@ -11,6 +11,7 @@ import logging
 import threading
 from typing import Any, List, Tuple
 
+import cv2
 import numpy as np
 from numpy.typing import NDArray
 from scipy.spatial.transform import Rotation as R
@@ -32,6 +33,7 @@ class CameraWorker:
 
         # Thread-safe frame storage
         self.latest_frame: NDArray[np.uint8] | None = None
+        self.latest_jpeg: bytes | None = None
         self.frame_lock = threading.Lock()
         self._stop_event = threading.Event()
         self._thread: threading.Thread | None = None
@@ -65,6 +67,11 @@ class CameraWorker:
                 return None
             # Return a copy in original BGR format (OpenCV native)
             return self.latest_frame.copy()
+
+    def get_latest_jpeg(self) -> bytes | None:
+        """Get the latest frame encoded as JPEG bytes (thread-safe)."""
+        with self.frame_lock:
+            return self.latest_jpeg
 
     def get_face_tracking_offsets(
         self,
@@ -116,6 +123,10 @@ class CameraWorker:
                     # Thread-safe frame storage
                     with self.frame_lock:
                         self.latest_frame = frame  # .copy()
+                        # Pre-encode to JPEG for streaming
+                        success, buffer = cv2.imencode(".jpg", frame)
+                        if success:
+                            self.latest_jpeg = buffer.tobytes()
 
                     # Check if face tracking was just disabled
                     if self.previous_head_tracking_state and not self.is_head_tracking_enabled:

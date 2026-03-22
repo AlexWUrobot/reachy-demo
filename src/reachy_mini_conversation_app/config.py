@@ -129,6 +129,13 @@ class Config:
     LOCAL_VISION_MODEL = os.getenv("LOCAL_VISION_MODEL", "HuggingFaceTB/SmolVLM2-2.2B-Instruct")
     HF_TOKEN = os.getenv("HF_TOKEN")  # Optional, falls back to hf auth login if not set
 
+    # Optional HTTP VLM for `cooking_vision` tool.
+    # multipart: POST -F "image=@..." -F "prompt=..." (matches typical /describe)
+    # json: POST {"image_b64": "...", "prompt": "..."}
+    VLM_SERVER_URL = os.getenv("VLM_SERVER_URL", "http://127.0.0.1:8080/describe")
+    VLM_REQUEST_FORMAT = os.getenv("VLM_REQUEST_FORMAT", "multipart").strip().lower()
+    VLM_REQUEST_TIMEOUT = float(os.getenv("VLM_REQUEST_TIMEOUT", "10"))
+
     logger.debug(f"Model: {MODEL_NAME}, HF_HOME: {HF_HOME}, Vision Model: {LOCAL_VISION_MODEL}")
 
     _profiles_directory_env = os.getenv("REACHY_MINI_EXTERNAL_PROFILES_DIRECTORY")

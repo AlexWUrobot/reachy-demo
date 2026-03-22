@@ -38,6 +38,15 @@ class Camera(Tool):
 
         # Get frame from camera worker buffer (like main_works.py)
         if deps.camera_worker is not None:
+            # If vision manager is not involved, use pre-encoded JPEG
+            if deps.vision_manager is None:
+                jpeg = deps.camera_worker.get_latest_jpeg()
+                if jpeg:
+                    b64_encoded = base64.b64encode(jpeg).decode("utf-8")
+                    return {"b64_im": b64_encoded}
+                logger.error("No JPEG frame available from camera worker")
+                return {"error": "No JPEG frame available"}
+
             frame = deps.camera_worker.get_latest_frame()
             if frame is None:
                 logger.error("No frame available from camera worker")

@@ -1,139 +1,1635 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Reachy Mini Conversation – Settings</title>
-    <link rel="stylesheet" href="/static/style.css" />
-  </head>
-  <body>
-    <div class="ambient"></div>
-    <div id="loading" class="loading">
-      <div class="spinner"></div>
-      <p>Loading…</p>
-    </div>
-    <div class="container">
-      <header class="hero">
-        <div class="pill">Headless control</div>
-        <h1>Reachy Mini Conversation</h1>
-        <p class="subtitle">Configure your OpenAI key and tweak personalities without the full UI.</p>
-      </header>
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>ClawMaster Assistant 🦀</title>
+        <link
+            href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap"
+            rel="stylesheet"
+        />
 
-      <aside class="privacy-notice" role="note" aria-label="Privacy notice">
-        <p>
-          <strong>Privacy notice:</strong>
-          By default, speech and camera data are sent to OpenAI's Realtime API for inference. See OpenAI's
-          <a href="https://platform.openai.com/docs/guides/your-data" target="_blank" rel="noopener">
-            data usage policy
-          </a>
-          for details.
-        </p>
+        <style>
+            /* ============================================================
+       CSS VARIABLES — Kitchen color palette
+    ============================================================ */
+            :root {
+                --saffron: #f4a824;
+                --tomato: #e84040;
+                --basil: #3ab569;
+                --sky: #56c8e8;
+                --cream: #fff8ee;
+                --dark: #2b2118;
+                --panel-bg: rgba(255, 248, 238, 0.55);
+                --panel-border: rgba(244, 168, 36, 0.35);
+                --shadow: 0 8px 32px rgba(43, 33, 24, 0.13);
+                --radius: 22px;
+                --font-display: "Fredoka One", cursive;
+                --font-body: "Nunito", sans-serif;
+            }
 
-        <details>
-          <summary>Learn more</summary>
+            /* ============================================================
+       RESET & BASE
+    ============================================================ */
+            *,
+            *::before,
+            *::after {
+                box-sizing: border-box;
+                margin: 0;
+                padding: 0;
+            }
 
-          <p>
-            In privacy-sensitive environments, use <code>--local-vision</code> to process images on-device. See the
-            <a href="https://github.com/pollen-robotics/reachy_mini_conversation_app/blob/main/README.md" target="_blank" rel="noopener">
-              project README
-            </a>
-            for full setup instructions. An open-source approach is in the works – stay tuned for its release.
-          </p>
-        </details>
-      </aside>
+            body {
+                font-family: var(--font-body);
+                background: var(--cream);
+                color: var(--dark);
+                min-height: 100vh;
+                overflow-x: hidden;
+                position: relative;
+            }
 
-      <div id="configured" class="panel hidden">
-        <div class="panel-heading">
-          <div>
-            <p class="eyebrow">Credentials</p>
-            <h2>API key ready</h2>
-          </div>
-          <span class="chip chip-ok">Connected</span>
+            /* ============================================================
+       FLOATING INGREDIENT BACKGROUND
+    ============================================================ */
+            .bg-floats {
+                position: fixed;
+                inset: 0;
+                pointer-events: none;
+                z-index: 0;
+                overflow: hidden;
+            }
+
+            .bg-floats svg {
+                position: absolute;
+                opacity: 0.13;
+                animation: floatDrift linear infinite;
+            }
+
+            /* place & size each ingredient */
+            .bg-floats svg:nth-child(1) {
+                width: 90px;
+                top: 5%;
+                left: 3%;
+                animation-duration: 18s;
+                animation-delay: 0s;
+                transform: rotate(-15deg);
+            }
+            .bg-floats svg:nth-child(2) {
+                width: 70px;
+                top: 15%;
+                left: 88%;
+                animation-duration: 22s;
+                animation-delay: -4s;
+                transform: rotate(20deg);
+            }
+            .bg-floats svg:nth-child(3) {
+                width: 110px;
+                top: 45%;
+                left: 6%;
+                animation-duration: 26s;
+                animation-delay: -8s;
+                transform: rotate(10deg);
+            }
+            .bg-floats svg:nth-child(4) {
+                width: 75px;
+                top: 70%;
+                left: 82%;
+                animation-duration: 20s;
+                animation-delay: -2s;
+                transform: rotate(-25deg);
+            }
+            .bg-floats svg:nth-child(5) {
+                width: 95px;
+                top: 80%;
+                left: 20%;
+                animation-duration: 24s;
+                animation-delay: -6s;
+                transform: rotate(30deg);
+            }
+            .bg-floats svg:nth-child(6) {
+                width: 65px;
+                top: 30%;
+                left: 50%;
+                animation-duration: 19s;
+                animation-delay: -10s;
+                transform: rotate(-8deg);
+            }
+            .bg-floats svg:nth-child(7) {
+                width: 80px;
+                top: 55%;
+                left: 70%;
+                animation-duration: 28s;
+                animation-delay: -3s;
+                transform: rotate(18deg);
+            }
+            .bg-floats svg:nth-child(8) {
+                width: 100px;
+                top: 8%;
+                left: 42%;
+                animation-duration: 23s;
+                animation-delay: -7s;
+                transform: rotate(-12deg);
+            }
+
+            @keyframes floatDrift {
+                0% {
+                    transform: translateY(0) rotate(var(--r, 0deg));
+                }
+                50% {
+                    transform: translateY(-28px)
+                        rotate(calc(var(--r, 0deg) + 8deg));
+                }
+                100% {
+                    transform: translateY(0) rotate(var(--r, 0deg));
+                }
+            }
+
+            /* ============================================================
+       VIEW MANAGEMENT
+    ============================================================ */
+            .view {
+                position: relative;
+                z-index: 1;
+                display: flex;
+                flex-direction: column;
+                min-height: 100vh;
+            }
+            .hidden {
+                display: none !important;
+            }
+
+            /* ============================================================
+       HEADER
+    ============================================================ */
+            .header {
+                display: flex;
+                align-items: center;
+                gap: 14px;
+                padding: 18px 32px;
+                background: rgba(255, 248, 238, 0.75);
+                backdrop-filter: blur(14px);
+                border-bottom: 2px solid var(--panel-border);
+                box-shadow: 0 2px 14px rgba(43, 33, 24, 0.07);
+                flex-wrap: wrap;
+                position: sticky;
+                top: 0;
+                z-index: 10;
+            }
+
+            .logo-wrap {
+                width: 52px;
+                height: 52px;
+                border-radius: 16px;
+                overflow: hidden;
+                border: 3px solid var(--saffron);
+                background: var(--saffron);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                flex-shrink: 0;
+            }
+
+            .logo-wrap img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+            }
+
+            /* Fallback if logo.png missing */
+            .logo-wrap .logo-fallback {
+                font-size: 28px;
+                line-height: 1;
+            }
+
+            .header-title {
+                font-family: var(--font-display);
+                font-size: 1.85rem;
+                color: var(--tomato);
+                letter-spacing: 0.5px;
+                flex: 1;
+            }
+
+            .header-title span {
+                color: var(--saffron);
+            }
+
+            /* Connection status badge */
+            .status-badge {
+                display: flex;
+                align-items: center;
+                gap: 7px;
+                background: var(--panel-bg);
+                border: 2px solid var(--panel-border);
+                border-radius: 50px;
+                padding: 7px 16px;
+                font-weight: 800;
+                font-size: 0.82rem;
+                letter-spacing: 0.5px;
+                backdrop-filter: blur(8px);
+            }
+
+            .status-dot {
+                width: 11px;
+                height: 11px;
+                border-radius: 50%;
+                background: #ccc;
+                transition: background 0.4s;
+            }
+
+            .status-dot.connected {
+                background: var(--basil);
+                box-shadow: 0 0 8px var(--basil);
+                animation: pulse 1.8s infinite;
+            }
+            .status-dot.connecting {
+                background: var(--saffron);
+                animation: pulse 0.9s infinite;
+            }
+            .status-dot.disconnected {
+                background: var(--tomato);
+            }
+
+            @keyframes pulse {
+                0%,
+                100% {
+                    opacity: 1;
+                }
+                50% {
+                    opacity: 0.45;
+                }
+            }
+
+            /* ============================================================
+       MAIN DASHBOARD — View 1
+    ============================================================ */
+            .dashboard-body {
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                padding: 36px 24px 48px;
+                gap: 28px;
+            }
+
+            .section-label {
+                font-family: var(--font-display);
+                font-size: 1.1rem;
+                color: var(--tomato);
+                letter-spacing: 0.8px;
+                margin-bottom: 4px;
+            }
+
+            /* Camera container */
+            .camera-panel {
+                width: 100%;
+                max-width: 820px;
+                background: var(--panel-bg);
+                border: 2.5px solid var(--panel-border);
+                border-radius: var(--radius);
+                backdrop-filter: blur(18px);
+                box-shadow: var(--shadow);
+                padding: 18px;
+                display: flex;
+                flex-direction: column;
+                gap: 14px;
+            }
+
+            .camera-panel-header {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+            }
+
+            .live-badge {
+                display: flex;
+                align-items: center;
+                gap: 6px;
+                background: var(--tomato);
+                color: #fff;
+                font-weight: 800;
+                font-size: 0.78rem;
+                letter-spacing: 1.2px;
+                border-radius: 50px;
+                padding: 5px 13px;
+                animation: pulse 1.5s infinite;
+            }
+
+            .live-badge::before {
+                content: "";
+                width: 8px;
+                height: 8px;
+                border-radius: 50%;
+                background: #fff;
+            }
+
+            .camera-viewport {
+                position: relative;
+                width: 100%;
+                aspect-ratio: 16/9;
+                background: linear-gradient(135deg, #2b2118 0%, #3d2e22 100%);
+                border-radius: 14px;
+                overflow: hidden;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .camera-viewport video {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+            }
+
+            .camera-placeholder {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 14px;
+                color: rgba(255, 248, 238, 0.5);
+            }
+
+            .camera-placeholder svg {
+                opacity: 0.6;
+            }
+
+            .camera-placeholder p {
+                font-size: 0.95rem;
+                font-weight: 700;
+            }
+
+            /* Scan line animation over camera */
+            .scan-line {
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                height: 3px;
+                background: linear-gradient(
+                    90deg,
+                    transparent,
+                    var(--sky),
+                    transparent
+                );
+                opacity: 0.7;
+                animation: scanLine 3s linear infinite;
+            }
+
+            @keyframes scanLine {
+                0% {
+                    top: 0%;
+                }
+                100% {
+                    top: 100%;
+                }
+            }
+
+            /* Corner brackets on camera */
+            .corner {
+                position: absolute;
+                width: 22px;
+                height: 22px;
+                border-color: var(--saffron);
+                border-style: solid;
+                opacity: 0.9;
+            }
+            .corner.tl {
+                top: 10px;
+                left: 10px;
+                border-width: 3px 0 0 3px;
+                border-radius: 4px 0 0 0;
+            }
+            .corner.tr {
+                top: 10px;
+                right: 10px;
+                border-width: 3px 3px 0 0;
+                border-radius: 0 4px 0 0;
+            }
+            .corner.bl {
+                bottom: 10px;
+                left: 10px;
+                border-width: 0 0 3px 3px;
+                border-radius: 0 0 0 4px;
+            }
+            .corner.br {
+                bottom: 10px;
+                right: 10px;
+                border-width: 0 3px 3px 0;
+                border-radius: 0 0 4px 0;
+            }
+
+            /* WebRTC connect button */
+            .btn-connect {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 10px;
+                background: linear-gradient(135deg, var(--basil), #2d9157);
+                color: #fff;
+                font-family: var(--font-body);
+                font-weight: 800;
+                font-size: 1rem;
+                border: none;
+                border-radius: 14px;
+                padding: 14px 28px;
+                cursor: pointer;
+                box-shadow: 0 4px 18px rgba(58, 181, 105, 0.4);
+                transition:
+                    transform 0.18s,
+                    box-shadow 0.18s,
+                    background 0.2s;
+            }
+
+            .btn-connect:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 7px 24px rgba(58, 181, 105, 0.5);
+                background: linear-gradient(135deg, #42cc6a, var(--basil));
+            }
+
+            .btn-connect:active {
+                transform: scale(0.97);
+            }
+
+            .btn-connect.disconnecting {
+                background: linear-gradient(135deg, var(--tomato), #c42d2d);
+                box-shadow: 0 4px 18px rgba(232, 64, 64, 0.35);
+            }
+
+            /* WebSocket URL input area */
+            .ws-row {
+                display: flex;
+                gap: 10px;
+                align-items: center;
+                flex-wrap: wrap;
+            }
+
+            .ws-input {
+                flex: 1;
+                min-width: 200px;
+                border: 2px solid var(--panel-border);
+                border-radius: 12px;
+                padding: 11px 16px;
+                font-family: var(--font-body);
+                font-size: 0.9rem;
+                font-weight: 600;
+                background: rgba(255, 255, 255, 0.7);
+                color: var(--dark);
+                outline: none;
+                transition: border-color 0.2s;
+            }
+
+            .ws-input:focus {
+                border-color: var(--saffron);
+            }
+
+            /* Nav button to Sign Language page */
+            .btn-nav {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                background: linear-gradient(135deg, var(--saffron), #e08800);
+                color: #fff;
+                font-family: var(--font-body);
+                font-weight: 800;
+                font-size: 1.05rem;
+                border: none;
+                border-radius: 50px;
+                padding: 16px 32px;
+                cursor: pointer;
+                box-shadow: 0 4px 18px rgba(244, 168, 36, 0.45);
+                transition:
+                    transform 0.18s,
+                    box-shadow 0.18s;
+            }
+
+            .btn-nav:hover {
+                transform: translateY(-3px) scale(1.03);
+                box-shadow: 0 8px 28px rgba(244, 168, 36, 0.5);
+            }
+
+            .btn-nav:active {
+                transform: scale(0.97);
+            }
+
+            .info-strip {
+                max-width: 820px;
+                width: 100%;
+                background: var(--panel-bg);
+                border: 2.5px solid var(--panel-border);
+                border-radius: var(--radius);
+                backdrop-filter: blur(14px);
+                padding: 18px 24px;
+                display: flex;
+                gap: 24px;
+                flex-wrap: wrap;
+                box-shadow: var(--shadow);
+            }
+
+            .info-chip {
+                display: flex;
+                align-items: center;
+                gap: 9px;
+                font-weight: 700;
+                font-size: 0.9rem;
+            }
+
+            .info-chip .chip-icon {
+                font-size: 1.4rem;
+            }
+
+            /* ============================================================
+       SIGN LANGUAGE PAGE — View 2
+    ============================================================ */
+            .sign-body {
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+                padding: 32px 24px 48px;
+                gap: 24px;
+                max-width: 1200px;
+                margin: 0 auto;
+                width: 100%;
+            }
+
+            .sign-top-bar {
+                display: flex;
+                align-items: center;
+                gap: 16px;
+                flex-wrap: wrap;
+            }
+
+            .btn-back {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                background: var(--panel-bg);
+                border: 2.5px solid var(--panel-border);
+                border-radius: 14px;
+                padding: 10px 20px;
+                font-family: var(--font-body);
+                font-weight: 800;
+                font-size: 0.95rem;
+                color: var(--dark);
+                cursor: pointer;
+                transition:
+                    background 0.18s,
+                    transform 0.18s;
+                backdrop-filter: blur(8px);
+            }
+
+            .btn-back:hover {
+                background: rgba(255, 248, 238, 0.9);
+                transform: translateX(-2px);
+            }
+
+            .sign-heading {
+                font-family: var(--font-display);
+                font-size: 1.8rem;
+                color: var(--basil);
+            }
+
+            .sign-grid {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 24px;
+                flex: 1;
+            }
+
+            /* Left: video list */
+            .video-list-panel {
+                background: var(--panel-bg);
+                border: 2.5px solid var(--panel-border);
+                border-radius: var(--radius);
+                backdrop-filter: blur(18px);
+                box-shadow: var(--shadow);
+                display: flex;
+                flex-direction: column;
+                overflow: hidden;
+            }
+
+            .video-list-panel h3 {
+                font-family: var(--font-display);
+                font-size: 1.1rem;
+                padding: 18px 20px 14px;
+                color: var(--tomato);
+                border-bottom: 2px solid var(--panel-border);
+            }
+
+            .video-scroll {
+                overflow-y: auto;
+                flex: 1;
+                padding: 14px;
+                display: flex;
+                flex-direction: column;
+                gap: 12px;
+                scrollbar-width: thin;
+                scrollbar-color: var(--saffron) transparent;
+            }
+
+            .video-item {
+                display: flex;
+                gap: 14px;
+                align-items: center;
+                background: rgba(255, 255, 255, 0.6);
+                border: 2px solid transparent;
+                border-radius: 14px;
+                padding: 12px 14px;
+                cursor: pointer;
+                transition:
+                    border-color 0.2s,
+                    background 0.2s,
+                    transform 0.15s;
+            }
+
+            .video-item:hover {
+                background: rgba(255, 255, 255, 0.9);
+                transform: translateX(3px);
+            }
+            .video-item.active {
+                border-color: var(--saffron);
+                background: rgba(244, 168, 36, 0.12);
+            }
+
+            .video-thumb {
+                width: 72px;
+                height: 50px;
+                border-radius: 10px;
+                background: linear-gradient(135deg, #2b2118, #4a3828);
+                position: relative;
+                overflow: hidden;
+                flex-shrink: 0;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .video-thumb video {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+            }
+
+            .play-icon {
+                position: absolute;
+                width: 24px;
+                height: 24px;
+                background: rgba(244, 168, 36, 0.9);
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .play-icon svg {
+                margin-left: 2px;
+            }
+
+            .video-meta {
+                flex: 1;
+            }
+
+            .video-meta strong {
+                display: block;
+                font-size: 0.92rem;
+                font-weight: 800;
+                color: var(--dark);
+                margin-bottom: 3px;
+            }
+
+            .video-meta span {
+                font-size: 0.78rem;
+                color: #888;
+                font-weight: 600;
+            }
+
+            /* emoji tag on each video */
+            .video-emoji {
+                font-size: 1.4rem;
+                flex-shrink: 0;
+            }
+
+            /* Right: sentence display */
+            .sentence-panel {
+                background: var(--panel-bg);
+                border: 2.5px solid var(--panel-border);
+                border-radius: var(--radius);
+                backdrop-filter: blur(18px);
+                box-shadow: var(--shadow);
+                display: flex;
+                flex-direction: column;
+                gap: 0;
+                overflow: hidden;
+            }
+
+            .sentence-panel h3 {
+                font-family: var(--font-display);
+                font-size: 1.1rem;
+                padding: 18px 20px 14px;
+                color: var(--tomato);
+                border-bottom: 2px solid var(--panel-border);
+            }
+
+            .video-preview {
+                width: 100%;
+                aspect-ratio: 16/9;
+                background: #2b2118;
+                position: relative;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .video-preview video {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+            }
+
+            .video-preview-placeholder {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 10px;
+                color: rgba(255, 248, 238, 0.45);
+                font-weight: 700;
+            }
+
+            .sentence-content {
+                flex: 1;
+                padding: 28px 24px;
+                display: flex;
+                flex-direction: column;
+                gap: 16px;
+                align-items: flex-start;
+                justify-content: center;
+            }
+
+            .sentence-tag {
+                background: var(--basil);
+                color: #fff;
+                font-weight: 800;
+                font-size: 0.75rem;
+                letter-spacing: 1px;
+                border-radius: 50px;
+                padding: 5px 14px;
+                text-transform: uppercase;
+            }
+
+            .sentence-text {
+                font-family: var(--font-display);
+                font-size: 2rem;
+                color: var(--dark);
+                line-height: 1.35;
+            }
+
+            .sentence-sub {
+                font-size: 0.95rem;
+                color: #777;
+                font-weight: 600;
+                line-height: 1.6;
+            }
+
+            /* ============================================================
+       FOOTER
+    ============================================================ */
+            .footer {
+                text-align: center;
+                padding: 16px 24px;
+                font-size: 0.8rem;
+                color: #aaa;
+                font-weight: 600;
+                border-top: 1px solid var(--panel-border);
+                background: rgba(255, 248, 238, 0.6);
+                backdrop-filter: blur(8px);
+                position: relative;
+                z-index: 1;
+            }
+
+            /* ============================================================
+       TOAST NOTIFICATION
+    ============================================================ */
+            .toast {
+                position: fixed;
+                bottom: 28px;
+                left: 50%;
+                transform: translateX(-50%) translateY(80px);
+                background: var(--dark);
+                color: var(--cream);
+                font-weight: 700;
+                font-size: 0.92rem;
+                border-radius: 50px;
+                padding: 12px 28px;
+                z-index: 999;
+                transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+                pointer-events: none;
+                white-space: nowrap;
+            }
+
+            .toast.show {
+                transform: translateX(-50%) translateY(0);
+            }
+
+            /* ============================================================
+       RESPONSIVE
+    ============================================================ */
+            @media (max-width: 750px) {
+                .header-title {
+                    font-size: 1.35rem;
+                }
+
+                .sign-grid {
+                    grid-template-columns: 1fr;
+                }
+
+                .video-list-panel {
+                    max-height: 340px;
+                }
+            }
+
+            @media (max-width: 480px) {
+                .header {
+                    padding: 14px 18px;
+                }
+                .dashboard-body {
+                    padding: 22px 14px 40px;
+                }
+                .btn-nav {
+                    font-size: 0.95rem;
+                    padding: 14px 22px;
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <!-- ============================================================
+       FLOATING INGREDIENT BACKGROUND
+  ============================================================ -->
+        <div class="bg-floats" aria-hidden="true">
+            <!-- Apple -->
+            <svg viewBox="0 0 80 90" xmlns="http://www.w3.org/2000/svg">
+                <path
+                    d="M40 18 C22 18 12 34 12 50 C12 68 24 82 40 82 C56 82 68 68 68 50 C68 34 58 18 40 18Z"
+                    fill="#E84040"
+                />
+                <ellipse
+                    cx="40"
+                    cy="80"
+                    rx="12"
+                    ry="4"
+                    fill="#c03030"
+                    opacity="0.3"
+                />
+                <path
+                    d="M40 18 C40 10 48 4 54 6"
+                    stroke="#3AB569"
+                    stroke-width="3"
+                    fill="none"
+                    stroke-linecap="round"
+                />
+                <ellipse
+                    cx="57"
+                    cy="5"
+                    rx="6"
+                    ry="9"
+                    fill="#3AB569"
+                    transform="rotate(-20 57 5)"
+                />
+            </svg>
+            <!-- Carrot -->
+            <svg viewBox="0 0 60 100" xmlns="http://www.w3.org/2000/svg">
+                <polygon points="30,90 10,22 50,22" fill="#F4A824" />
+                <line
+                    x1="30"
+                    y1="22"
+                    x2="30"
+                    y2="2"
+                    stroke="#3AB569"
+                    stroke-width="3"
+                />
+                <line
+                    x1="30"
+                    y1="22"
+                    x2="18"
+                    y2="5"
+                    stroke="#3AB569"
+                    stroke-width="3"
+                />
+                <line
+                    x1="30"
+                    y1="22"
+                    x2="42"
+                    y2="5"
+                    stroke="#3AB569"
+                    stroke-width="3"
+                />
+            </svg>
+            <!-- Broccoli -->
+            <svg viewBox="0 0 90 100" xmlns="http://www.w3.org/2000/svg">
+                <rect
+                    x="35"
+                    y="60"
+                    width="20"
+                    height="30"
+                    rx="6"
+                    fill="#2d8045"
+                />
+                <circle cx="45" cy="50" r="22" fill="#3AB569" />
+                <circle cx="28" cy="44" r="16" fill="#3AB569" />
+                <circle cx="62" cy="44" r="16" fill="#3AB569" />
+                <circle cx="45" cy="34" r="14" fill="#48d478" />
+                <circle cx="30" cy="32" r="10" fill="#48d478" />
+                <circle cx="60" cy="32" r="10" fill="#48d478" />
+            </svg>
+            <!-- Lemon -->
+            <svg viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+                <ellipse
+                    cx="40"
+                    cy="40"
+                    rx="30"
+                    ry="24"
+                    fill="#F4A824"
+                    transform="rotate(-20 40 40)"
+                />
+                <ellipse
+                    cx="40"
+                    cy="40"
+                    rx="30"
+                    ry="24"
+                    fill="#FFD155"
+                    opacity="0.6"
+                    transform="rotate(-20 40 40)"
+                />
+            </svg>
+            <!-- Pepper -->
+            <svg viewBox="0 0 70 90" xmlns="http://www.w3.org/2000/svg">
+                <path
+                    d="M35 20 C20 20 10 36 12 56 C14 72 24 82 35 82 C46 82 56 72 58 56 C60 36 50 20 35 20Z"
+                    fill="#E84040"
+                />
+                <path
+                    d="M35 20 C35 12 40 6 44 8"
+                    stroke="#3AB569"
+                    stroke-width="3"
+                    fill="none"
+                    stroke-linecap="round"
+                />
+            </svg>
+            <!-- Mushroom -->
+            <svg viewBox="0 0 90 90" xmlns="http://www.w3.org/2000/svg">
+                <ellipse cx="45" cy="42" rx="35" ry="26" fill="#c0784a" />
+                <rect
+                    x="33"
+                    y="50"
+                    width="24"
+                    height="28"
+                    rx="8"
+                    fill="#ffe9d4"
+                />
+                <circle cx="30" cy="35" r="6" fill="#fff" opacity="0.4" />
+                <circle cx="52" cy="28" r="5" fill="#fff" opacity="0.4" />
+                <circle cx="62" cy="40" r="4" fill="#fff" opacity="0.4" />
+            </svg>
+            <!-- Tomato -->
+            <svg viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="40" cy="44" r="30" fill="#E84040" />
+                <path
+                    d="M40 14 C40 6 34 2 30 4"
+                    stroke="#3AB569"
+                    stroke-width="3"
+                    fill="none"
+                    stroke-linecap="round"
+                />
+                <path
+                    d="M40 14 C40 6 46 2 50 4"
+                    stroke="#3AB569"
+                    stroke-width="3"
+                    fill="none"
+                    stroke-linecap="round"
+                />
+                <path
+                    d="M40 14 C44 8 50 8 52 12"
+                    stroke="#3AB569"
+                    stroke-width="3"
+                    fill="none"
+                    stroke-linecap="round"
+                />
+            </svg>
+            <!-- Star anise / spice -->
+            <svg viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+                <polygon
+                    points="40,6 46,28 68,28 51,42 57,64 40,51 23,64 29,42 12,28 34,28"
+                    fill="#F4A824"
+                />
+                <circle cx="40" cy="40" r="8" fill="#e08800" />
+            </svg>
         </div>
-        <p class="muted">OpenAI API key is already configured. You can jump straight to personalities.</p>
-        <button id="change-key-btn" class="ghost">Change API key</button>
-      </div>
 
-      <div id="form-panel" class="panel hidden">
-        <div class="panel-heading">
-          <div>
-            <p class="eyebrow">Credentials</p>
-            <h2>Connect OpenAI</h2>
-          </div>
-          <span class="chip">Required</span>
-        </div>
-        <p class="muted">Paste your API key once and we will store it locally for the headless conversation loop.</p>
-        <label for="api-key">OpenAI API Key</label>
-        <input id="api-key" type="password" placeholder="sk-..." autocomplete="off" />
-        <div class="actions">
-          <button id="save-btn">Save key</button>
-          <p id="status" class="status"></p>
-        </div>
-      </div>
+        <!-- ============================
+       TOAST
+  ============================= -->
+        <div class="toast" id="toast"></div>
 
-      <div id="personality-panel" class="panel hidden">
-        <div class="panel-heading">
-          <div>
-            <p class="eyebrow">Profiles</p>
-            <h2>Personality studio</h2>
-          </div>
-          <span class="chip">Live</span>
+        <!-- ============================================================
+       VIEW 1 — MAIN DASHBOARD
+  ============================================================ -->
+        <div class="view" id="view-dashboard">
+            <!-- Header -->
+            <header class="header">
+                <div class="logo-wrap">
+                    <img
+                        src="/static/images/reachymini_avatar.png"
+                        alt="ClawMaster Logo"
+                        onerror="this.style.display='none'; this.nextElementSibling.style.display='block';"
+                    />
+                    <span class="logo-fallback" style="display: none">🦾</span>
+                </div>
+                <h1 class="header-title">Claw<span>Master</span> Assistant</h1>
+
+                <div class="status-badge" id="statusBadge">
+                    <div class="status-dot disconnected" id="statusDot"></div>
+                    <span id="statusText">Not Connected</span>
+                </div>
+            </header>
+
+            <!-- Dashboard body -->
+            <main class="dashboard-body">
+                <!-- Camera panel -->
+                <div class="camera-panel">
+                    <div class="camera-panel-header">
+                        <p class="section-label">📷 Live Robot Camera</p>
+                        <div
+                            class="live-badge"
+                            id="liveBadge"
+                            style="display: none"
+                        >
+                            LIVE
+                        </div>
+                    </div>
+
+                    <!-- WebSocket URL row -->
+                    <div class="ws-row">
+                        <input
+                            class="ws-input"
+                            id="wsUrl"
+                            type="text"
+                            placeholder="ws://192.168.x.x:8888  (WebRTC signaling)"
+                            value="ws://localhost:8888"
+                            aria-label="WebSocket URL"
+                        />
+                        <button
+                            class="btn-connect"
+                            id="btnConnect"
+                            onclick="toggleConnection()"
+                        >
+                            <svg
+                                width="18"
+                                height="18"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="2.5"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                            >
+                                <path d="M5 12h14" />
+                                <path d="m12 5 7 7-7 7" />
+                            </svg>
+                            Connect
+                        </button>
+                    </div>
+
+                    <!-- Camera viewport -->
+                    <div class="camera-viewport" id="cameraViewport">
+                        <div class="camera-placeholder" id="cameraPlaceholder">
+                            <svg
+                                width="64"
+                                height="64"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="1.5"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                            >
+                                <path
+                                    d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"
+                                />
+                                <circle cx="12" cy="13" r="4" />
+                            </svg>
+                            <p>Waiting for robot connection…</p>
+                        </div>
+
+                        <!-- The MJPEG video stream (hidden until connected) -->
+                        <img
+                            id="remoteVideo"
+                            style="
+                                display: none;
+                                width: 100%;
+                                height: 100%;
+                                object-fit: cover;
+                            "
+                        />
+
+                        <!-- Scan line overlay -->
+                        <div class="scan-line"></div>
+
+                        <!-- Corner brackets -->
+                        <div class="corner tl"></div>
+                        <div class="corner tr"></div>
+                        <div class="corner bl"></div>
+                        <div class="corner br"></div>
+                    </div>
+                </div>
+
+                <!-- Info strip -->
+                <div class="info-strip">
+                    <div class="info-chip">
+                        <span class="chip-icon">🤖</span>
+                        <div>
+                            <strong
+                                style="
+                                    display: block;
+                                    font-size: 0.85rem;
+                                    margin-bottom: 2px;
+                                "
+                                >Reachy Mini</strong
+                            >
+                            <span
+                                style="
+                                    font-size: 0.78rem;
+                                    color: #888;
+                                    font-weight: 600;
+                                "
+                                >Open Claw Edition</span
+                            >
+                        </div>
+                    </div>
+                    <div class="info-chip">
+                        <span class="chip-icon">👨‍🍳</span>
+                        <div>
+                            <strong
+                                style="
+                                    display: block;
+                                    font-size: 0.85rem;
+                                    margin-bottom: 2px;
+                                "
+                                >Kitchen Assistant</strong
+                            >
+                            <span
+                                style="
+                                    font-size: 0.78rem;
+                                    color: #888;
+                                    font-weight: 600;
+                                "
+                                >Smart cooking buddy</span
+                            >
+                        </div>
+                    </div>
+                    <div class="info-chip">
+                        <span class="chip-icon">🌐</span>
+                        <div>
+                            <strong
+                                style="
+                                    display: block;
+                                    font-size: 0.85rem;
+                                    margin-bottom: 2px;
+                                "
+                                >WebRTC Stream</strong
+                            >
+                            <span
+                                style="
+                                    font-size: 0.78rem;
+                                    color: #888;
+                                    font-weight: 600;
+                                "
+                                id="streamInfo"
+                                >No stream yet</span
+                            >
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Navigate to Sign Language page -->
+                <button class="btn-nav" onclick="showView('view-sign')">
+                    <svg
+                        width="20"
+                        height="20"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2.5"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                    >
+                        <path d="M18 11V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v0" />
+                        <path d="M14 10V4a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v0" />
+                        <path d="M10 10.5V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v3" />
+                        <path
+                            d="M18 11a2 2 0 1 1 4 0v3a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"
+                        />
+                    </svg>
+                    View Sign Language Guide
+                </button>
+            </main>
+
+            <footer class="footer">
+                ClawMaster Assistant &nbsp;•&nbsp; Powered by Reachy Mini Open
+                Claw &nbsp;🦾&nbsp;•&nbsp; WebRTC Live Feed
+            </footer>
         </div>
-        <p class="muted">Create lean instruction sets, toggle tools, and apply a voice for your Reachy Mini.</p>
-        <div class="section">
-          <div class="section-heading">
-            <h3>Select & launch</h3>
-            <p class="muted small">Pick a profile and choose what should launch on startup.</p>
-          </div>
-          <div class="row row-top">
-            <label for="personality-select">Select</label>
-            <select id="personality-select"></select>
-            <button id="persist-personality" class="ghost">Use on startup</button>
-            <button id="apply-personality" class="ghost">Apply</button>
-            <button id="new-personality" class="ghost">New</button>
-          </div>
-          <div class="row">
-            <label>Startup personality</label>
-            <div class="startup-row">
-              <span id="startup-label" class="chip">Built-in default</span>
+        <!-- /view-dashboard -->
+
+        <!-- ============================================================
+       VIEW 2 — SIGN LANGUAGE PAGE
+  ============================================================ -->
+        <div class="view hidden" id="view-sign">
+            <header class="header">
+                <div class="logo-wrap">
+                    <img
+                        src="/static/images/reachymini_avatar.png"
+                        alt="ClawMaster Logo"
+                        onerror="this.style.display='none'; this.nextElementSibling.style.display='block';"
+                    />
+                    <span class="logo-fallback" style="display: none">🦾</span>
+                </div>
+                <h1 class="header-title">Claw<span>Master</span> Assistant</h1>
+            </header>
+
+            <main class="sign-body">
+                <!-- Top bar -->
+                <div class="sign-top-bar">
+                    <button
+                        class="btn-back"
+                        onclick="showView('view-dashboard')"
+                    >
+                        <svg
+                            width="16"
+                            height="16"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2.5"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                        >
+                            <path d="m15 18-6-6 6-6" />
+                        </svg>
+                        Back to Dashboard
+                    </button>
+                    <h2 class="sign-heading">🤟 Sign Language Guide</h2>
+                </div>
+
+                <!-- Two-column grid -->
+                <div class="sign-grid">
+                    <!-- LEFT: scrollable video list -->
+                    <div class="video-list-panel">
+                        <h3>👋 Robot Signs & Gestures</h3>
+                        <div class="video-scroll" id="videoList">
+                            <!-- Populated by JS -->
+                        </div>
+                    </div>
+
+                    <!-- RIGHT: big sentence display + video preview -->
+                    <div class="sentence-panel">
+                        <h3>📖 What Reachy is saying</h3>
+
+                        <div class="video-preview" id="videoPreview">
+                            <div
+                                class="video-preview-placeholder"
+                                id="videoPreviewPlaceholder"
+                            >
+                                <svg
+                                    width="52"
+                                    height="52"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    stroke-width="1.5"
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                >
+                                    <polygon points="5 3 19 12 5 21 5 3" />
+                                </svg>
+                                <span>Select a sign to preview</span>
+                            </div>
+                            <video
+                                id="signVideo"
+                                style="
+                                    display: none;
+                                    width: 100%;
+                                    height: 100%;
+                                    object-fit: cover;
+                                "
+                                controls
+                                loop
+                            ></video>
+                        </div>
+
+                        <div class="sentence-content" id="sentenceContent">
+                            <span class="sentence-tag" id="sentenceTag"
+                                >Kitchen Helper</span
+                            >
+                            <p class="sentence-text" id="sentenceText">
+                                Pick a sign from the list to see what Reachy is
+                                communicating! 👈
+                            </p>
+                            <p class="sentence-sub" id="sentenceSub">
+                                Reachy Mini uses its Open Claw arm to perform
+                                sign-language inspired gestures so everyone can
+                                understand — including those who are deaf or
+                                hard of hearing.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </main>
+
+            <footer class="footer">
+                ClawMaster Assistant &nbsp;•&nbsp; Accessibility First 🤟
+                &nbsp;•&nbsp; Sign Language Mode
+            </footer>
+        </div>
+        <!-- /view-sign -->
+
+        <!-- ============================================================
+       JAVASCRIPT
+  ============================================================ -->
+        <script>
+            /* ============================================================
+       SIGN LANGUAGE SAMPLES DATA
+       (Replace .mp4 hrefs & sentences with real content)
+    ============================================================ */
+            const SIGN_SAMPLES = [
+                {
+                    id: 1,
+                    emoji: "👋",
+                    label: "Hello!",
+                    tag: "Greeting",
+                    file: "signs/hello.mp4",
+                    sentence: "Hello! I am ClawMaster, your kitchen buddy!",
+                    sub: "Reachy waves its claw in a friendly greeting. Use this to welcome someone into the kitchen.",
+                },
+                {
+                    id: 2,
+                    emoji: "🍳",
+                    label: "Let's Cook!",
+                    tag: "Kitchen Action",
+                    file: "signs/lets_cook.mp4",
+                    sentence:
+                        "Time to cook! Let's get those ingredients ready.",
+                    sub: "The claw mimics a stirring motion — Reachy is excited to start cooking with you!",
+                },
+                {
+                    id: 3,
+                    emoji: "🥕",
+                    label: "Pass the Carrot",
+                    tag: "Ingredient",
+                    file: "signs/carrot.mp4",
+                    sentence: "Can you pass me the carrot, please?",
+                    sub: "Reachy extends its claw and points toward the cutting board, asking for the carrot.",
+                },
+                {
+                    id: 4,
+                    emoji: "🔥",
+                    label: "Too Hot!",
+                    tag: "Safety",
+                    file: "signs/hot.mp4",
+                    sentence: "Careful! The stove is very hot right now.",
+                    sub: "A rapid back-and-forth wave signals danger — step back from the heat source.",
+                },
+                {
+                    id: 5,
+                    emoji: "✅",
+                    label: "All Done!",
+                    tag: "Status",
+                    file: "signs/done.mp4",
+                    sentence: "Task complete! Great job, the dish is ready!",
+                    sub: "Reachy raises its claw in a thumbs-up style gesture — mission accomplished!",
+                },
+                {
+                    id: 6,
+                    emoji: "🧂",
+                    label: "Add Salt",
+                    tag: "Ingredient",
+                    file: "signs/salt.mp4",
+                    sentence: "This needs a pinch of salt. Just a little!",
+                    sub: 'Reachy pinches its claw fingers together in a classic "pinch of salt" gesture.',
+                },
+                {
+                    id: 7,
+                    emoji: "⏰",
+                    label: "Wait / Timer",
+                    tag: "Timing",
+                    file: "signs/wait.mp4",
+                    sentence:
+                        "Hold on! The timer still has a few minutes left.",
+                    sub: "The claw holds steady in the air — patience is key, something is still cooking!",
+                },
+                {
+                    id: 8,
+                    emoji: "🍽️",
+                    label: "Serve the Plate",
+                    tag: "Kitchen Action",
+                    file: "signs/serve.mp4",
+                    sentence: "Time to plate up! Let's make it look yummy.",
+                    sub: "Reachy sweeps its claw forward in a presenting gesture, signalling it's time to serve.",
+                },
+            ];
+
+            /* ============================================================
+       VIEW SWITCHING
+    ============================================================ */
+            function showView(id) {
+                document
+                    .querySelectorAll(".view")
+                    .forEach((v) => v.classList.add("hidden"));
+                document.getElementById(id).classList.remove("hidden");
+            }
+
+            /* ============================================================
+       TOAST
+    ============================================================ */
+            function showToast(msg, duration = 2800) {
+                const t = document.getElementById("toast");
+                t.textContent = msg;
+                t.classList.add("show");
+                setTimeout(() => t.classList.remove("show"), duration);
+            }
+
+            /* ============================================================
+       RENDER VIDEO LIST
+    ============================================================ */
+            function renderVideoList() {
+                const container = document.getElementById("videoList");
+                container.innerHTML = SIGN_SAMPLES.map(
+                    (s) => `
+        <div class="video-item" id="vi-${s.id}" onclick="selectSign(${s.id})" role="button" tabindex="0" aria-label="${s.label}">
+          <div class="video-thumb">
+            <div class="play-icon">
+              <svg width="9" height="10" viewBox="0 0 9 10" fill="white"><polygon points="0,0 9,5 0,10"/></svg>
             </div>
           </div>
+          <div class="video-meta">
+            <strong>${s.label}</strong>
+            <span>${s.tag} &nbsp;•&nbsp; ${s.file}</span>
+          </div>
+          <span class="video-emoji">${s.emoji}</span>
         </div>
+      `,
+                ).join("");
+            }
 
-        <div class="section">
-          <div class="section-heading">
-            <h3>Create / edit</h3>
-            <p class="muted small">Adjust instructions, tools, and voice, then save your profile.</p>
-          </div>
-          <div class="row">
-            <label for="personality-name">Name</label>
-            <input id="personality-name" type="text" class="input-field" placeholder="my_profile" />
-            <label for="voice-select">Voice</label>
-            <select id="voice-select"></select>
-          </div>
-          <div class="row">
-            <label for="instructions-ta">Instructions</label>
-            <textarea id="instructions-ta" rows="8" placeholder="# Write your instructions here"></textarea>
-          </div>
-          <div class="row">
-            <label for="tools-ta">tools.txt</label>
-            <textarea id="tools-ta" rows="6" placeholder="# tools enabled for this profile"></textarea>
-          </div>
-          <div class="row">
-            <label for="tools-available">Available tools</label>
-            <div id="tools-available" class="checkbox-grid"></div>
-          </div>
-          <div class="row row-save">
-            <label></label>
-            <div class="actions">
-              <button id="save-personality">Save</button>
-            </div>
-          </div>
-        </div>
-        <p id="personality-status" class="status"></p>
-      </div>
-    </div>
+            /* ============================================================
+       SELECT / PLAY A SIGN
+    ============================================================ */
+            function selectSign(id) {
+                const s = SIGN_SAMPLES.find((x) => x.id === id);
+                if (!s) return;
 
-    <script src="/static/main.js"></script>
-  </body>
-  </html>
+                // Highlight active item
+                document
+                    .querySelectorAll(".video-item")
+                    .forEach((el) => el.classList.remove("active"));
+                document.getElementById(`vi-${id}`).classList.add("active");
+
+                // Update sentence panel
+                document.getElementById("sentenceTag").textContent = s.tag;
+                document.getElementById("sentenceText").textContent =
+                    s.sentence;
+                document.getElementById("sentenceSub").textContent = s.sub;
+
+                // Update video preview
+                const vidEl = document.getElementById("signVideo");
+                const placeholder = document.getElementById(
+                    "videoPreviewPlaceholder",
+                );
+
+                vidEl.src = s.file;
+                vidEl.style.display = "block";
+                placeholder.style.display = "none";
+
+                // Gracefully fall back if .mp4 doesn't exist
+                vidEl.onerror = () => {
+                    vidEl.style.display = "none";
+                    placeholder.style.display = "flex";
+                    placeholder.querySelector("span").textContent =
+                        `${s.emoji} (video coming soon!)`;
+                    showToast(
+                        `🎬 "${s.label}" video not found — placeholder shown.`,
+                    );
+                };
+
+                vidEl.load();
+                vidEl.play().catch(() => {}); // allow autoplay failure gracefully
+            }
+
+            /* ============================================================
+       WebRTC-like MJPEG Stream Logic
+       (Adapted to work with the Reachy Mini /video_feed endpoint)
+    ============================================================ */
+            let connected = false;
+
+            function setStatus(state, label) {
+                const dot = document.getElementById("statusDot");
+                const text = document.getElementById("statusText");
+                dot.className = `status-dot ${state}`;
+                text.textContent = label;
+            }
+
+            function toggleConnection() {
+                if (!connected) {
+                    startStream();
+                } else {
+                    stopStream();
+                }
+            }
+
+            function startStream() {
+                setStatus("connecting", "Connecting…");
+                const btn = document.getElementById("btnConnect");
+                btn.innerHTML = `
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                    Connecting…
+                `;
+
+                const video = document.getElementById("remoteVideo");
+                const placeholder =
+                    document.getElementById("cameraPlaceholder");
+                const liveBadge = document.getElementById("liveBadge");
+                const streamInfo = document.getElementById("streamInfo");
+
+                // Start MJPEG stream
+                video.src = "/video_feed";
+                video.style.display = "block";
+
+                video.onload = () => {
+                    if (!connected) {
+                        placeholder.style.display = "none";
+                        liveBadge.style.display = "flex";
+                        streamInfo.textContent = "Streaming ✓";
+                        connected = true;
+                        setStatus("connected", "Connected");
+                        btnConnectReady(true);
+                        showToast(
+                            "🎥 Robot camera connected! Live feed active.",
+                        );
+                    }
+                };
+
+                video.onerror = () => {
+                    showToast(
+                        "❌ Could not reach video stream. Is the camera on?",
+                    );
+                    stopStream();
+                };
+            }
+
+            function stopStream() {
+                const video = document.getElementById("remoteVideo");
+                const placeholder =
+                    document.getElementById("cameraPlaceholder");
+                const liveBadge = document.getElementById("liveBadge");
+                const streamInfo = document.getElementById("streamInfo");
+
+                video.src = "";
+                video.style.display = "none";
+                placeholder.style.display = "flex";
+                liveBadge.style.display = "none";
+                streamInfo.textContent = "No stream yet";
+
+                connected = false;
+                setStatus("disconnected", "Not Connected");
+                btnConnectReady(false);
+                showToast("🔌 Stream stopped.");
+            }
+
+            function btnConnectReady(isConnected) {
+                const btn = document.getElementById("btnConnect");
+                if (isConnected) {
+                    btn.classList.add("disconnecting");
+                    btn.innerHTML = `
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                        Disconnect
+                    `;
+                } else {
+                    btn.classList.remove("disconnecting");
+                    btn.innerHTML = `
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+                        Connect
+                    `;
+                }
+            }
+
+            /* ============================================================
+       INIT
+    ============================================================ */
+            document.addEventListener("DOMContentLoaded", () => {
+                renderVideoList();
+                setStatus("disconnected", "Not Connected");
+
+                // Update placeholder text for our MJPEG stream
+                document.getElementById("wsUrl").value = "/video_feed";
+                document.getElementById("wsUrl").disabled = true;
+            });
+        </script>
+    </body>
+</html>
